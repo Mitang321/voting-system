@@ -42,6 +42,7 @@ h2 {
   border: none;
   padding: 0.5em 1em;
   cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
 .vote-button:hover {
@@ -50,4 +51,44 @@ h2 {
 
 .vote-count {
   font-weight: bold;
+}
+
+#results,
+#manage-polls {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  padding: 1em;
+  margin-top: 1em;
+}
+
+#results-chart {
+  max-width: 100%;
+  height: 300px;
+}
+
+#back-to-vote,
+#delete-vote,
+#edit-vote {
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  padding: 0.5em 1em;
+  cursor: pointer;
+  margin-top: 1em;
+  transition: background-color 0.3s ease;
+}
+
+#back-to-vote:hover,
+#delete-vote:hover,
+#edit-vote:hover {
+  background-color: #0056b3;
+}
+
+#edit-vote,
+#delete-vote {
+  margin-left: 0.5em;
+}
+
+input[type="radio"] {
+  margin-left: 0.5em;
 }

@@ -3,8 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Online Voting System - Version 2</title>
+    <title>Online Voting System</title>
     <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
   <body>
     <header>
@@ -13,9 +14,7 @@
     <main>
       <section id="vote-list">
         <h2>Available Votes</h2>
-        <ul id="votes">
-          <!-- List of votes will be dynamically inserted here -->
-        </ul>
+        <ul id="votes"></ul>
       </section>
       <section id="create-vote">
         <h2>Create New Vote</h2>
@@ -24,6 +23,16 @@
           <input type="text" id="vote-title" required />
           <button type="submit">Create Vote</button>
         </form>
+      </section>
+      <section id="results" style="display: none">
+        <h2>Results</h2>
+        <canvas id="results-chart"></canvas>
+        <button id="back-to-vote">Back to Votes</button>
+      </section>
+      <section id="manage-polls" style="display: none">
+        <h2>Manage Polls</h2>
+        <button id="delete-vote">Delete Selected Vote</button>
+        <button id="edit-vote">Edit Selected Vote</button>
       </section>
     </main>
     <script src="script.js"></script>
