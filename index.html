@@ -5,36 +5,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Online Voting System</title>
     <link rel="stylesheet" href="styles.css" />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
   <body>
-    <header>
-      <h1>Online Voting System</h1>
-    </header>
-    <main>
-      <section id="vote-list">
-        <h2>Available Votes</h2>
-        <ul id="votes"></ul>
-      </section>
-      <section id="create-vote">
-        <h2>Create New Vote</h2>
+    <div id="login-section">
+      <h2>Login</h2>
+      <form id="login-form">
+        <input type="text" id="username" placeholder="Username" required />
+        <input type="password" id="password" placeholder="Password" required />
+        <button type="submit">Login</button>
+      </form>
+    </div>
+
+    <div id="vote-section" style="display: none">
+      <h2>Current Polls</h2>
+      <ul id="votes"></ul>
+
+      <div id="manage-polls" style="display: none">
+        <h3>Create New Poll</h3>
         <form id="vote-form">
-          <label for="vote-title">Vote Title:</label>
-          <input type="text" id="vote-title" required />
-          <button type="submit">Create Vote</button>
+          <input
+            type="text"
+            id="vote-title"
+            placeholder="Enter poll title"
+            required
+          />
+          <button type="submit">Create Poll</button>
         </form>
-      </section>
-      <section id="results" style="display: none">
-        <h2>Results</h2>
+
+        <button id="edit-vote">Edit Selected Poll</button>
+        <button id="delete-vote">Delete Selected Poll</button>
+      </div>
+
+      <button id="show-results">Show Results</button>
+      <div id="results" style="display: none">
         <canvas id="results-chart"></canvas>
-        <button id="back-to-vote">Back to Votes</button>
-      </section>
-      <section id="manage-polls" style="display: none">
-        <h2>Manage Polls</h2>
-        <button id="delete-vote">Delete Selected Vote</button>
-        <button id="edit-vote">Edit Selected Vote</button>
-      </section>
-    </main>
+        <button id="back-to-vote">Back to Polls</button>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="script.js"></script>
   </body>
 </html>
