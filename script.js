@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const voteList = document.getElementById("votes");
   const voteForm = document.getElementById("vote-form");
   const voteTitleInput = document.getElementById("vote-title");
+  const voteExpirationInput = document.getElementById("vote-expiration");
   const managePollsSection = document.getElementById("manage-polls");
   const loginSection = document.getElementById("login-section");
   const loginForm = document.getElementById("login-form");
@@ -36,13 +37,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderPolls() {
     voteList.innerHTML = "";
+    const now = new Date().getTime();
     polls.forEach((poll, index) => {
+      const expiration = new Date(poll.expiration).getTime();
+      const isExpired = now > expiration;
+      const expirationMessage = isExpired ? " (Expired)" : "";
       const li = document.createElement("li");
       li.innerHTML = `
               ${poll.title} 
               <span class="vote-count">${poll.votes} votes</span>
+              ${expirationMessage}
               ${
-                !isAdmin
+                !isAdmin && !isExpired
                   ? `<button class="vote-button" data-index="${index}">Vote</button>`
                   : ""
               }
@@ -80,9 +86,16 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!isAdmin) return;
 
     const newPollTitle = voteTitleInput.value.trim();
-    if (newPollTitle && !polls.some((poll) => poll.title === newPollTitle)) {
-      polls.push({ title: newPollTitle, votes: 0 });
+    const expiration = voteExpirationInput.value;
+
+    if (
+      newPollTitle &&
+      expiration &&
+      !polls.some((poll) => poll.title === newPollTitle)
+    ) {
+      polls.push({ title: newPollTitle, expiration: expiration, votes: 0 });
       voteTitleInput.value = "";
+      voteExpirationInput.value = "";
       savePolls();
       renderPolls();
     } else if (polls.some((poll) => poll.title === newPollTitle)) {
@@ -90,26 +103,33 @@ document.addEventListener("DOMContentLoaded", () => {
         "Poll with this title already exists. Please choose a different title."
       );
     } else {
-      alert("Poll title cannot be empty.");
+      alert("Poll title or expiration cannot be empty.");
     }
   });
 
   voteList.addEventListener("click", (event) => {
     if (event.target.classList.contains("vote-button") && !isAdmin) {
       const pollIndex = event.target.getAttribute("data-index");
-      polls[pollIndex].votes++;
-      savePolls();
-      renderPolls();
+      const poll = polls[pollIndex];
+      const now = new Date().getTime();
+      const expiration = new Date(poll.expiration).getTime();
 
-      if (!votingHistory[currentUser]) {
-        votingHistory[currentUser] = [];
+      if (now <= expiration) {
+        poll.votes++;
+        savePolls();
+        renderPolls();
+
+        if (!votingHistory[currentUser]) {
+          votingHistory[currentUser] = [];
+        }
+        votingHistory[currentUser].push({ poll: poll.title, choice: "Yes" });
+        saveVotingHistory();
+        renderVotingHistory();
+
+        alert("Your vote has been recorded!");
+      } else {
+        alert("This poll has expired and you cannot vote on it anymore.");
       }
-      votingHistory[currentUser].push({
-        poll: polls[pollIndex].title,
-        choice: "Yes",
-      });
-      saveVotingHistory();
-      renderVotingHistory();
     }
   });
 
@@ -125,8 +145,14 @@ document.addEventListener("DOMContentLoaded", () => {
         "Enter new title for the selected poll:",
         polls[selectedPoll].title
       );
+      const newExpiration = prompt(
+        "Enter new expiration date for the selected poll:",
+        polls[selectedPoll].expiration
+      );
+
       if (newTitle && !polls.some((poll) => poll.title === newTitle)) {
         polls[selectedPoll].title = newTitle;
+        polls[selectedPoll].expiration = newExpiration;
         selectedPoll = null;
         savePolls();
         renderPolls();

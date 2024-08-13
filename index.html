@@ -28,6 +28,12 @@
             placeholder="Poll Title"
             required
           />
+          <input
+            type="datetime-local"
+            id="vote-expiration"
+            placeholder="Expiration Date"
+            required
+          />
           <button type="submit">Create Poll</button>
         </form>
         <button id="edit-vote">Edit Selected Poll</button>
@@ -35,6 +41,7 @@
       </div>
 
       <button id="show-results">Show Results</button>
+      <button id="show-history">Show Voting History</button>
     </div>
 
     <div id="results" style="display: none">
