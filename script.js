@@ -6,6 +6,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const loginSection = document.getElementById("login-section");
   const loginForm = document.getElementById("login-form");
   const voteSection = document.getElementById("vote-section");
+  const resultsSection = document.getElementById("results");
+  const historySection = document.getElementById("history-section");
   const usernameInput = document.getElementById("username");
   const passwordInput = document.getElementById("password");
   const deleteVoteButton = document.getElementById("delete-vote");
@@ -14,30 +16,40 @@ document.addEventListener("DOMContentLoaded", () => {
     .getElementById("results-chart")
     .getContext("2d");
   const backToVoteButton = document.getElementById("back-to-vote");
+  const backToVoteListButton = document.getElementById("back-to-vote-list");
   const showResultsButton = document.getElementById("show-results");
-  const resultsSection = document.getElementById("results");
+  const voteHistoryList = document.getElementById("vote-history");
 
-  const votes = [];
-  const voteCounts = {};
-  let selectedVote = null;
+  let polls = JSON.parse(localStorage.getItem("polls")) || [];
+  let votingHistory = JSON.parse(localStorage.getItem("votingHistory")) || {};
+  let selectedPoll = null;
   let isAdmin = false;
+  let currentUser = "";
 
-  function renderVotes() {
+  function savePolls() {
+    localStorage.setItem("polls", JSON.stringify(polls));
+  }
+
+  function saveVotingHistory() {
+    localStorage.setItem("votingHistory", JSON.stringify(votingHistory));
+  }
+
+  function renderPolls() {
     voteList.innerHTML = "";
-    votes.forEach((vote) => {
+    polls.forEach((poll, index) => {
       const li = document.createElement("li");
       li.innerHTML = `
-              ${vote} 
-              <span class="vote-count">${voteCounts[vote] || 0} votes</span>
+              ${poll.title} 
+              <span class="vote-count">${poll.votes} votes</span>
               ${
                 !isAdmin
-                  ? `<button class="vote-button" data-vote="${vote}">Vote</button>`
+                  ? `<button class="vote-button" data-index="${index}">Vote</button>`
                   : ""
               }
               ${
                 isAdmin
-                  ? `<input type="radio" name="select-vote" value="${vote}" ${
-                      selectedVote === vote ? "checked" : ""
+                  ? `<input type="radio" name="select-poll" value="${index}" ${
+                      selectedPoll === index ? "checked" : ""
                     }>`
                   : ""
               }
@@ -48,17 +60,32 @@ document.addEventListener("DOMContentLoaded", () => {
     managePollsSection.style.display = isAdmin ? "block" : "none";
   }
 
+  function renderVotingHistory() {
+    voteHistoryList.innerHTML = "";
+    if (votingHistory[currentUser]) {
+      votingHistory[currentUser].forEach((historyItem) => {
+        const li = document.createElement("li");
+        li.innerHTML = `Poll: ${historyItem.poll} - Voted: ${historyItem.choice}`;
+        voteHistoryList.appendChild(li);
+      });
+    } else {
+      const li = document.createElement("li");
+      li.textContent = "No voting history available.";
+      voteHistoryList.appendChild(li);
+    }
+  }
+
   voteForm.addEventListener("submit", (event) => {
     event.preventDefault();
     if (!isAdmin) return;
 
-    const newVoteTitle = voteTitleInput.value.trim();
-    if (newVoteTitle && !votes.includes(newVoteTitle)) {
-      votes.push(newVoteTitle);
-      voteCounts[newVoteTitle] = 0;
+    const newPollTitle = voteTitleInput.value.trim();
+    if (newPollTitle && !polls.some((poll) => poll.title === newPollTitle)) {
+      polls.push({ title: newPollTitle, votes: 0 });
       voteTitleInput.value = "";
-      renderVotes();
-    } else if (votes.includes(newVoteTitle)) {
+      savePolls();
+      renderPolls();
+    } else if (polls.some((poll) => poll.title === newPollTitle)) {
       alert(
         "Poll with this title already exists. Please choose a different title."
       );
@@ -69,60 +96,70 @@ document.addEventListener("DOMContentLoaded", () => {
 
   voteList.addEventListener("click", (event) => {
     if (event.target.classList.contains("vote-button") && !isAdmin) {
-      const voteTitle = event.target.getAttribute("data-vote");
-      if (voteCounts[voteTitle] !== undefined) {
-        voteCounts[voteTitle]++;
-        renderVotes();
+      const pollIndex = event.target.getAttribute("data-index");
+      polls[pollIndex].votes++;
+      savePolls();
+      renderPolls();
+
+      if (!votingHistory[currentUser]) {
+        votingHistory[currentUser] = [];
       }
+      votingHistory[currentUser].push({
+        poll: polls[pollIndex].title,
+        choice: "Yes",
+      });
+      saveVotingHistory();
+      renderVotingHistory();
     }
   });
 
   voteList.addEventListener("change", (event) => {
-    if (isAdmin && event.target.name === "select-vote") {
-      selectedVote = event.target.value;
-    }
-  });
-
-  deleteVoteButton.addEventListener("click", () => {
-    if (!isAdmin || !selectedVote) return; // Only allow admin to delete
-
-    const index = votes.indexOf(selectedVote);
-    if (index > -1) {
-      votes.splice(index, 1);
-      delete voteCounts[selectedVote];
-      selectedVote = null;
-      renderVotes();
+    if (isAdmin && event.target.name === "select-poll") {
+      selectedPoll = parseInt(event.target.value, 10);
     }
   });
 
   editVoteButton.addEventListener("click", () => {
-    if (!isAdmin || !selectedVote) return; // Only allow admin to edit
-
-    const newVoteTitle = prompt(
-      "Enter the new title for the selected vote:",
-      selectedVote
-    );
-    if (newVoteTitle && !votes.includes(newVoteTitle)) {
-      const index = votes.indexOf(selectedVote);
-      if (index > -1) {
-        votes[index] = newVoteTitle;
-        voteCounts[newVoteTitle] = voteCounts[selectedVote];
-        delete voteCounts[selectedVote];
-        selectedVote = newVoteTitle;
-        renderVotes();
+    if (isAdmin && selectedPoll !== null) {
+      const newTitle = prompt(
+        "Enter new title for the selected poll:",
+        polls[selectedPoll].title
+      );
+      if (newTitle && !polls.some((poll) => poll.title === newTitle)) {
+        polls[selectedPoll].title = newTitle;
+        selectedPoll = null;
+        savePolls();
+        renderPolls();
+      } else {
+        alert("Invalid title or poll with this title already exists.");
       }
+    } else {
+      alert("Please select a poll to edit.");
     }
   });
 
-  backToVoteButton.addEventListener("click", () => {
-    resultsSection.style.display = "none";
-    voteSection.style.display = "block";
-    renderVotes();
+  deleteVoteButton.addEventListener("click", () => {
+    if (isAdmin && selectedPoll !== null) {
+      const confirmDelete = confirm(
+        `Are you sure you want to delete the poll: ${polls[selectedPoll].title}?`
+      );
+      if (confirmDelete) {
+        polls.splice(selectedPoll, 1);
+        selectedPoll = null;
+        savePolls();
+        renderPolls();
+      }
+    } else {
+      alert("Please select a poll to delete.");
+    }
   });
 
   showResultsButton.addEventListener("click", () => {
-    const labels = votes;
-    const data = votes.map((vote) => voteCounts[vote] || 0);
+    voteSection.style.display = "none";
+    resultsSection.style.display = "block";
+
+    const labels = polls.map((poll) => poll.title);
+    const data = polls.map((poll) => poll.votes);
 
     new Chart(resultsChart, {
       type: "bar",
@@ -130,10 +167,10 @@ document.addEventListener("DOMContentLoaded", () => {
         labels: labels,
         datasets: [
           {
-            label: "Vote Counts",
+            label: "Votes",
             data: data,
-            backgroundColor: "#007bff",
-            borderColor: "#0056b3",
+            backgroundColor: "rgba(54, 162, 235, 0.2)",
+            borderColor: "rgba(54, 162, 235, 1)",
             borderWidth: 1,
           },
         ],
@@ -146,18 +183,24 @@ document.addEventListener("DOMContentLoaded", () => {
         },
       },
     });
-
-    resultsSection.style.display = "block";
-    voteSection.style.display = "none";
   });
 
-  // Handle login
+  backToVoteButton.addEventListener("click", () => {
+    resultsSection.style.display = "none";
+    voteSection.style.display = "block";
+  });
+
+  backToVoteListButton.addEventListener("click", () => {
+    historySection.style.display = "none";
+    voteSection.style.display = "block";
+  });
+
   loginForm.addEventListener("submit", (event) => {
     event.preventDefault();
-    const username = usernameInput.value.trim();
-    const password = passwordInput.value.trim();
+    currentUser = usernameInput.value;
+    const password = passwordInput.value;
 
-    if (username === "admin" && password === "admin123") {
+    if (currentUser === "admin" && password === "admin123") {
       isAdmin = true;
     } else {
       isAdmin = false;
@@ -165,8 +208,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     loginSection.style.display = "none";
     voteSection.style.display = "block";
-    renderVotes();
+
+    renderPolls();
+    renderVotingHistory();
   });
 
-  renderVotes();
+  renderPolls();
 });

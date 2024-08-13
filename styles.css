@@ -1,22 +1,25 @@
 body {
   font-family: Arial, sans-serif;
-  background-color: #f4f4f4;
+  background-color: #eef2f5;
   margin: 0;
   padding: 20px;
+  color: #333;
 }
 
 h2 {
-  color: #333;
+  color: #007bff;
   margin-bottom: 10px;
+  text-align: center;
 }
 
 #login-section,
-#vote-section {
+#vote-section,
+#history-section {
   max-width: 600px;
   margin: 0 auto;
   background: #fff;
   padding: 20px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
 }
 
@@ -76,6 +79,7 @@ li {
 
 .vote-count {
   font-weight: bold;
+  color: #555;
 }
 
 #results {
@@ -89,8 +93,80 @@ li {
 
 #manage-polls {
   margin-top: 20px;
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f4f4f4;
+  }
+
+  h2 {
+    text-align: center;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    margin: 0 auto;
+    width: 200px;
+  }
+
+  input,
+  button {
+    margin-bottom: 10px;
+    padding: 10px;
+    font-size: 16px;
+  }
+
+  ul {
+    list-style-type: none;
+    padding: 0;
+  }
+
+  #votes li,
+  #vote-history li {
+    padding: 10px;
+    background: #fff;
+    margin-bottom: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #ddd;
+  }
+
+  .vote-button,
+  input[type="radio"] {
+    margin-left: 10px;
+  }
+
+  #vote-section,
+  #results,
+  #history-section {
+    max-width: 400px;
+    margin: 20px auto;
+  }
+
+  #manage-polls button {
+    margin-right: 10px;
+  }
 }
 
 #manage-polls button {
   margin-right: 10px;
+}
+
+#history-section {
+  text-align: left;
+}
+
+#vote-history li {
+  padding: 10px;
+  background: #e9ecef;
+  border: 1px solid #ccc;
+  margin-bottom: 5px;
+  border-radius: 5px;
 }
