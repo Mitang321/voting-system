@@ -18,6 +18,14 @@
 
     <div id="vote-section" style="display: none">
       <h2>Polls</h2>
+      <div id="poll-controls">
+        <input type="text" id="search-polls" placeholder="Search polls..." />
+        <select id="filter-polls">
+          <option value="all">All Polls</option>
+          <option value="active">Active Polls</option>
+          <option value="expired">Expired Polls</option>
+        </select>
+      </div>
       <ul id="votes"></ul>
 
       <div id="manage-polls" style="display: none">

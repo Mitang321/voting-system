@@ -19,10 +19,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const backToVoteButton = document.getElementById("back-to-vote");
   const backToVoteListButton = document.getElementById("back-to-vote-list");
   const showResultsButton = document.getElementById("show-results");
+  const showHistoryButton = document.getElementById("show-history");
   const voteHistoryList = document.getElementById("vote-history");
+  const searchInput = document.getElementById("search-polls");
+  const filterSelect = document.getElementById("filter-polls");
 
   let polls = JSON.parse(localStorage.getItem("polls")) || [];
   let votingHistory = JSON.parse(localStorage.getItem("votingHistory")) || {};
+  let users = JSON.parse(localStorage.getItem("users")) || {
+    admin: "admin123",
+    user: "user",
+  };
   let selectedPoll = null;
   let isAdmin = false;
   let currentUser = "";
@@ -35,10 +42,31 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem("votingHistory", JSON.stringify(votingHistory));
   }
 
+  function saveUsers() {
+    localStorage.setItem("users", JSON.stringify(users));
+  }
+
   function renderPolls() {
     voteList.innerHTML = "";
     const now = new Date().getTime();
-    polls.forEach((poll, index) => {
+    const searchQuery = searchInput.value.toLowerCase();
+    const filterValue = filterSelect.value;
+
+    let filteredPolls = polls.filter((poll) =>
+      poll.title.toLowerCase().includes(searchQuery)
+    );
+
+    if (filterValue === "active") {
+      filteredPolls = filteredPolls.filter(
+        (poll) => new Date(poll.expiration).getTime() > now
+      );
+    } else if (filterValue === "expired") {
+      filteredPolls = filteredPolls.filter(
+        (poll) => new Date(poll.expiration).getTime() <= now
+      );
+    }
+
+    filteredPolls.forEach((poll, index) => {
       const expiration = new Date(poll.expiration).getTime();
       const isExpired = now > expiration;
       const expirationMessage = isExpired ? " (Expired)" : "";
@@ -150,14 +178,11 @@ document.addEventListener("DOMContentLoaded", () => {
         polls[selectedPoll].expiration
       );
 
-      if (newTitle && !polls.some((poll) => poll.title === newTitle)) {
+      if (newTitle && newExpiration) {
         polls[selectedPoll].title = newTitle;
         polls[selectedPoll].expiration = newExpiration;
-        selectedPoll = null;
         savePolls();
         renderPolls();
-      } else {
-        alert("Invalid title or poll with this title already exists.");
       }
     } else {
       alert("Please select a poll to edit.");
@@ -166,10 +191,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   deleteVoteButton.addEventListener("click", () => {
     if (isAdmin && selectedPoll !== null) {
-      const confirmDelete = confirm(
-        `Are you sure you want to delete the poll: ${polls[selectedPoll].title}?`
-      );
-      if (confirmDelete) {
+      if (confirm("Are you sure you want to delete the selected poll?")) {
         polls.splice(selectedPoll, 1);
         selectedPoll = null;
         savePolls();
@@ -181,27 +203,24 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   showResultsButton.addEventListener("click", () => {
-    voteSection.style.display = "none";
-    resultsSection.style.display = "block";
-
-    const labels = polls.map((poll) => poll.title);
-    const data = polls.map((poll) => poll.votes);
+    const data = {
+      labels: polls.map((poll) => poll.title),
+      datasets: [
+        {
+          label: "Poll Results",
+          data: polls.map((poll) => poll.votes),
+          backgroundColor: "rgba(75, 192, 192, 0.2)",
+          borderColor: "rgba(75, 192, 192, 1)",
+          borderWidth: 1,
+        },
+      ],
+    };
 
     new Chart(resultsChart, {
       type: "bar",
-      data: {
-        labels: labels,
-        datasets: [
-          {
-            label: "Votes",
-            data: data,
-            backgroundColor: "rgba(54, 162, 235, 0.2)",
-            borderColor: "rgba(54, 162, 235, 1)",
-            borderWidth: 1,
-          },
-        ],
-      },
+      data: data,
       options: {
+        responsive: true,
         scales: {
           y: {
             beginAtZero: true,
@@ -209,35 +228,52 @@ document.addEventListener("DOMContentLoaded", () => {
         },
       },
     });
+
+    resultsSection.style.display = "block";
+    voteSection.style.display = "none";
+    historySection.style.display = "none";
+  });
+
+  showHistoryButton.addEventListener("click", () => {
+    renderVotingHistory();
+    historySection.style.display = "block";
+    voteSection.style.display = "none";
+    resultsSection.style.display = "none";
   });
 
   backToVoteButton.addEventListener("click", () => {
     resultsSection.style.display = "none";
     voteSection.style.display = "block";
+    historySection.style.display = "none";
   });
 
   backToVoteListButton.addEventListener("click", () => {
     historySection.style.display = "none";
     voteSection.style.display = "block";
+    resultsSection.style.display = "none";
   });
 
   loginForm.addEventListener("submit", (event) => {
     event.preventDefault();
-    currentUser = usernameInput.value;
+    const username = usernameInput.value.trim();
     const password = passwordInput.value;
 
-    if (currentUser === "admin" && password === "admin123") {
-      isAdmin = true;
+    if (username in users && users[username] === password) {
+      currentUser = username;
+      isAdmin = username === "admin";
+      loginSection.style.display = "none";
+      voteSection.style.display = "block";
+      renderPolls();
     } else {
-      isAdmin = false;
+      alert("Invalid username or password.");
     }
-
-    loginSection.style.display = "none";
-    voteSection.style.display = "block";
-
-    renderPolls();
-    renderVotingHistory();
   });
 
-  renderPolls();
+  searchInput.addEventListener("input", () => {
+    renderPolls();
+  });
+
+  filterSelect.addEventListener("change", () => {
+    renderPolls();
+  });
 });
