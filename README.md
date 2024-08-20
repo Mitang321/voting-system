@@ -11,3 +11,7 @@ Once Poll is Ended result can be seen under result section
 
 
 And normal user can login with any username and password but there they can only vote and see result , thay can create or edit the pools.
+
+## Setup
+1. Clone Repo.
+1. Open `index.html` in a browser.
