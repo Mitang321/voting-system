@@ -1,4 +1,7 @@
 # voting-system
+## Live Preview
+
+[Live Preview](https://voting-system-one-pi.vercel.app/)
 
 ADMIN CAN LOGIN WITH 
 admin as username and admin123 password
